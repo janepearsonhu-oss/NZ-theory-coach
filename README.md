@@ -4,10 +4,10 @@ A local study app for the New Zealand learner licence theory test. The app is En
 
 ## Open the app
 
-Open this file in a browser:
+For local use, open `index.html` in a browser after downloading or cloning the project:
 
 ```text
-/Users/xiaoyu/Desktop/Git/nz-licence-coach/index.html
+index.html
 ```
 
 Study data is stored in the browser's localStorage. Use the export button before changing browsers or machines.
