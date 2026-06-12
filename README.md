@@ -88,3 +88,18 @@ Use the official NZTA material as the source of truth:
 - Drive: https://drive.govt.nz
 
 Do not scrape or copy a third-party paid question bank. The safest workflow is to import only your own missed questions, your own notes, or material you are allowed to use from official Road Code sources.
+
+## Built-in Road Code packs
+
+The app includes built-in Road Code practice packs. These cards are paraphrased practice questions rather than a verbatim copy of the NZTA pages, because the NZTA website is copyrighted. Each card includes an answer, explanation and source link to the relevant Road Code section.
+
+Current local count:
+
+- 177 Road Code practice cards
+- 354 Road Code recall/drill variants
+- 27 demo multiple-choice cards
+- 558 total cards
+
+The recall/drill variants are generated from the reviewed Road Code cards. They are designed for spaced repetition: one card asks the rule directly, and another asks you to recognise the rule from the answer.
+
+The NZTA site says the theory question pages include most questions you might be asked, and that questions may be updated at any time. Keep using the official Road Code updates page before the test.
