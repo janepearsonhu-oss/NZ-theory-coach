@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">NZ Theory Coach icon</title>
+  <desc id="desc">A teal road sign with a check mark.</desc>
+  <rect width="512" height="512" rx="112" fill="#0f766e"/>
+  <path d="M153 379h206c24 0 44-20 44-44V177c0-24-20-44-44-44H153c-24 0-44 20-44 44v158c0 24 20 44 44 44Z" fill="#f5f7f5"/>
+  <path d="M166 221h180" stroke="#164e63" stroke-width="30" stroke-linecap="round"/>
+  <path d="M166 285h98" stroke="#164e63" stroke-width="30" stroke-linecap="round"/>
+  <path d="m285 306 37 37 77-95" fill="none" stroke="#0f766e" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

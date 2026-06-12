@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>NZ Theory Coach</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">New Zealand learner licence</p>
+        <h1>NZ Theory Coach</h1>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="export-data" title="Export study data" aria-label="Export study data">
+          <span aria-hidden="true">↓</span>
+        </button>
+        <button class="icon-btn" id="open-import" title="Import questions" aria-label="Import questions">
+          <span aria-hidden="true">+</span>
+        </button>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Main navigation">
+      <button class="tab is-active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="quiz">Practice</button>
+      <button class="tab" data-tab="review">Review</button>
+      <button class="tab" data-tab="mistakes">Mistakes</button>
+      <button class="tab" data-tab="import">Import</button>
+    </nav>
+
+    <main>
+      <section class="view is-active" id="dashboard-view" aria-labelledby="dashboard-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Today</p>
+            <h2 id="dashboard-title">Study status</h2>
+          </div>
+          <button class="primary-btn" id="quick-review">Start due review</button>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric">
+            <span class="metric-label">Overall error rate</span>
+            <strong id="metric-error-rate">0%</strong>
+            <small id="metric-attempts">0 attempts</small>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Due today</span>
+            <strong id="metric-due">0</strong>
+            <small>Scheduled by memory curve</small>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Mock forecast</span>
+            <strong id="metric-readiness">--</strong>
+            <small id="metric-passline">Target 32 / 35</small>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Focus category</span>
+            <strong id="metric-weakest">None yet</strong>
+            <small>Prioritise this category</small>
+          </article>
+        </div>
+
+        <div class="split-layout">
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Today's plan</h3>
+              <span id="daily-plan-count">0 questions</span>
+            </div>
+            <ol class="task-list" id="daily-plan"></ol>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Error rate by category</h3>
+              <span id="category-count">0 categories</span>
+            </div>
+            <div class="category-bars" id="category-bars"></div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <h3>Recent sessions</h3>
+            <span id="recent-count">0 sessions</span>
+          </div>
+          <div class="session-list" id="recent-sessions"></div>
+        </section>
+      </section>
+
+      <section class="view" id="quiz-view" aria-labelledby="quiz-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Practice</p>
+            <h2 id="quiz-title">Practice mode</h2>
+          </div>
+          <select id="category-filter" aria-label="Choose category"></select>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card" data-mode="due">
+            <strong>Due review</strong>
+            <span>Clear overdue and recently missed questions first</span>
+          </button>
+          <button class="mode-card" data-mode="weak">
+            <strong>Weak categories</strong>
+            <span>Practise the topics with the highest error rate</span>
+          </button>
+          <button class="mode-card" data-mode="mock">
+            <strong>35-question mock</strong>
+            <span>Train against the 32 / 35 target</span>
+          </button>
+          <button class="mode-card" data-mode="random">
+            <strong>Random drill</strong>
+            <span>Keep momentum and uncover blind spots</span>
+          </button>
+        </div>
+
+        <section class="quiz-shell" id="quiz-shell" hidden>
+          <div class="quiz-progress">
+            <span id="quiz-mode-label">Practice</span>
+            <div class="progress-track" aria-hidden="true">
+              <span id="quiz-progress-bar"></span>
+            </div>
+            <span id="quiz-counter">0 / 0</span>
+          </div>
+
+          <article class="question-panel">
+            <div class="question-meta">
+              <span id="question-category">Core</span>
+              <span id="question-due">New</span>
+            </div>
+            <h3 id="question-text"></h3>
+            <div class="options" id="answer-options"></div>
+            <button class="translation-toggle" id="toggle-translation" type="button" hidden>
+              Show Chinese translation
+            </button>
+            <div class="translation-panel" id="translation-panel" hidden></div>
+            <div class="feedback" id="answer-feedback" hidden></div>
+            <div class="question-actions">
+              <button class="secondary-btn" id="skip-question">Skip</button>
+              <button class="primary-btn" id="next-question" disabled>Next</button>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <section class="view" id="review-view" aria-labelledby="review-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Memory curve</p>
+            <h2 id="review-title">Review queue</h2>
+          </div>
+          <button class="primary-btn" id="start-overdue">Review due questions</button>
+        </div>
+
+        <div class="timeline" id="review-timeline"></div>
+      </section>
+
+      <section class="view" id="mistakes-view" aria-labelledby="mistakes-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Wrong book</p>
+            <h2 id="mistakes-title">Mistake book</h2>
+          </div>
+          <button class="secondary-btn" id="clear-mastered">Hide mastered</button>
+        </div>
+
+        <div class="mistake-list" id="mistake-list"></div>
+      </section>
+
+      <section class="view" id="import-view" aria-labelledby="import-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Question bank</p>
+            <h2 id="import-title">Import and manage</h2>
+          </div>
+          <button class="secondary-btn" id="download-template">Download CSV template</button>
+        </div>
+
+        <div class="split-layout">
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Paste CSV or JSON</h3>
+              <span id="import-status">Ready</span>
+            </div>
+            <textarea id="import-text" spellcheck="false" placeholder="category,question,optionA,optionB,optionC,optionD,answer,explanation,zhQuestion,zhOptionA,zhOptionB,zhOptionC,zhOptionD,zhExplanation,sourceUrl"></textarea>
+            <div class="button-row">
+              <button class="primary-btn" id="import-questions">Import questions</button>
+              <button class="secondary-btn" id="reset-demo">Reset demo deck</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h3>Add a question manually</h3>
+              <span>English first, Chinese translation optional</span>
+            </div>
+            <form id="manual-form" class="manual-form">
+              <label>
+                Category
+                <input name="category" required placeholder="e.g. Signs / Give way" />
+              </label>
+              <label>
+                Question
+                <textarea name="question" required placeholder="Question text in English"></textarea>
+              </label>
+              <label>
+                Chinese question translation
+                <textarea name="zhQuestion" placeholder="Optional Chinese translation"></textarea>
+              </label>
+              <div class="answer-grid">
+                <label>A <input name="optionA" required /></label>
+                <label>B <input name="optionB" required /></label>
+                <label>C <input name="optionC" required /></label>
+                <label>D <input name="optionD" required /></label>
+              </div>
+              <div class="answer-grid">
+                <label>Chinese A <input name="zhOptionA" /></label>
+                <label>Chinese B <input name="zhOptionB" /></label>
+                <label>Chinese C <input name="zhOptionC" /></label>
+                <label>Chinese D <input name="zhOptionD" /></label>
+              </div>
+              <label>
+                Correct answer
+                <select name="answer">
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                </select>
+              </label>
+              <label>
+                Explanation
+                <textarea name="explanation" placeholder="Why this answer is correct"></textarea>
+              </label>
+              <label>
+                Chinese explanation
+                <textarea name="zhExplanation" placeholder="Optional Chinese explanation"></textarea>
+              </label>
+              <label>
+                Source URL
+                <input name="sourceUrl" placeholder="NZTA Road Code or your source link" />
+              </label>
+              <button class="primary-btn" type="submit">Add question</button>
+            </form>
+          </section>
+        </div>
+
+        <section class="source-band" aria-label="Official source links">
+          <a href="https://www.nzta.govt.nz/roadcode" target="_blank" rel="noreferrer">NZTA Road Code</a>
+          <a href="https://www.nzta.govt.nz/roadcode/theory-test-questions" target="_blank" rel="noreferrer">NZTA Theory Questions</a>
+          <a href="https://www.nzta.govt.nz/roadcode/road-code-updates" target="_blank" rel="noreferrer">Road Code Updates</a>
+          <a href="https://drive.govt.nz" target="_blank" rel="noreferrer">Drive.govt.nz</a>
+        </section>
+      </section>
+    </main>
+
+    <template id="empty-template">
+      <div class="empty-state">
+        <strong>No data yet</strong>
+        <span>Practise a few questions or import your mistake records.</span>
+      </div>
+    </template>
+
+    <script src="./app.js" defer></script>
+    <script>
+      if ("serviceWorker" in navigator && location.protocol !== "file:") {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
