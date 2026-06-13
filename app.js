@@ -638,8 +638,9 @@ wireEvents();
 render();
 
 function loadState() {
+  const builtInCards = getBuiltInCards();
   const fallback = {
-    cards: structuredClone(seedCards),
+    cards: structuredClone(builtInCards),
     progress: {},
     sessions: [],
     settings: {
@@ -663,10 +664,10 @@ function loadState() {
       sessions: Array.isArray(saved.sessions) ? saved.sessions : [],
     };
 
-    const seedById = new Map(seedCards.map((card) => [card.id, structuredClone(card)]));
+    const seedById = new Map(builtInCards.map((card) => [card.id, structuredClone(card)]));
     merged.cards = merged.cards.map((card) => seedById.get(card.id) || card);
     const ids = new Set(merged.cards.map((card) => card.id));
-    for (const card of seedCards) {
+    for (const card of builtInCards) {
       if (!ids.has(card.id)) {
         merged.cards.push(structuredClone(card));
       }
@@ -678,10 +679,17 @@ function loadState() {
   }
 }
 
+function getBuiltInCards() {
+  return [
+    ...seedCards,
+    ...(Array.isArray(window.OFFICIAL_QUESTION_CARDS) ? window.OFFICIAL_QUESTION_CARDS : []),
+  ];
+}
+
 function prepareState(nextState) {
   nextState.cards = nextState.cards
     .map(normalizeCard)
-    .filter((card) => card.question && card.options.length >= 2);
+    .filter((card) => card.question && (card.options.length >= 2 || card.answerText));
   for (const card of nextState.cards) {
     ensureProgress(nextState, card.id);
   }
@@ -709,6 +717,9 @@ function normalizeCard(card) {
     options,
     answerIndex,
     explanation: String(card.explanation || "").trim(),
+    answerText: String(card.answerText || "").trim(),
+    officialId: String(card.officialId || "").trim(),
+    verificationStatus: String(card.verificationStatus || "").trim(),
     zh: {
       question: String(card.zh?.question || card.zhQuestion || "").trim(),
       options: zhOptions,
@@ -775,6 +786,18 @@ function wireEvents() {
   els.answerOptions.addEventListener("click", (event) => {
     const button = event.target.closest(".option-btn");
     if (!button || !activeSession || activeSession.answered) return;
+    if (button.dataset.action === "reveal") {
+      revealFlashcardAnswer();
+      return;
+    }
+    if (button.dataset.action === "got-it") {
+      answerCurrentQuestion(0, true);
+      return;
+    }
+    if (button.dataset.action === "missed-it") {
+      answerCurrentQuestion(-1, false);
+      return;
+    }
     answerCurrentQuestion(Number(button.dataset.index));
   });
 
@@ -1162,6 +1185,7 @@ function renderQuestion() {
   els.skipQuestion.disabled = false;
 
   els.answerOptions.replaceChildren(...card.options.map((option, index) => {
+    if (!card.options.length && card.answerText) return null;
     const button = document.createElement("button");
     button.className = "option-btn";
     button.dataset.index = String(index);
@@ -1175,8 +1199,43 @@ function renderQuestion() {
 
     button.append(key, text);
     return button;
-  }));
+  }).filter(Boolean));
+  if (!card.options.length && card.answerText) {
+    renderFlashcardPrompt(card);
+  }
   renderTranslation();
+}
+
+function renderFlashcardPrompt(card) {
+  const note = document.createElement("div");
+  note.className = "flashcard-note";
+  note.textContent = card.verificationStatus === "verified"
+    ? "Official question. Answer checked against the linked Road Code section."
+    : "Official question. Use the linked Road Code section before marking yourself.";
+
+  const reveal = document.createElement("button");
+  reveal.className = "option-btn";
+  reveal.dataset.action = "reveal";
+  reveal.innerHTML = '<span class="option-key">?</span><span>Reveal official answer</span>';
+
+  els.answerOptions.replaceChildren(note, reveal);
+}
+
+function revealFlashcardAnswer() {
+  const card = getCard(activeSession.queue[activeSession.index]);
+  showAnswerFeedback(card, 0, true, { revealOnly: true });
+
+  const gotIt = document.createElement("button");
+  gotIt.className = "option-btn";
+  gotIt.dataset.action = "got-it";
+  gotIt.innerHTML = '<span class="option-key">G</span><span>Got it</span>';
+
+  const missedIt = document.createElement("button");
+  missedIt.className = "option-btn";
+  missedIt.dataset.action = "missed-it";
+  missedIt.innerHTML = '<span class="option-key">!</span><span>Missed it</span>';
+
+  els.answerOptions.replaceChildren(gotIt, missedIt);
 }
 
 function renderTranslation() {
@@ -1235,9 +1294,9 @@ function hasChineseTranslation(card) {
   );
 }
 
-function answerCurrentQuestion(selectedIndex) {
+function answerCurrentQuestion(selectedIndex, forcedCorrect = null) {
   const card = getCard(activeSession.queue[activeSession.index]);
-  const correct = selectedIndex === card.answerIndex;
+  const correct = forcedCorrect === null ? selectedIndex === card.answerIndex : forcedCorrect;
   activeSession.answered = true;
   activeSession.selectedIndex = selectedIndex;
   activeSession.correct += correct ? 1 : 0;
@@ -1259,7 +1318,7 @@ function answerCurrentQuestion(selectedIndex) {
   renderMistakes();
 }
 
-function showAnswerFeedback(card, selectedIndex, correct) {
+function showAnswerFeedback(card, selectedIndex, correct, options = {}) {
   els.answerOptions.querySelectorAll(".option-btn").forEach((button) => {
     const index = Number(button.dataset.index);
     button.classList.toggle("is-selected", index === selectedIndex);
@@ -1268,10 +1327,12 @@ function showAnswerFeedback(card, selectedIndex, correct) {
   });
 
   const title = document.createElement("strong");
-  title.textContent = correct ? "Correct" : "Needs review";
+  title.textContent = options.revealOnly ? "Official answer" : correct ? "Correct" : "Needs review";
 
   const answer = document.createElement("div");
-  answer.textContent = `Correct answer: ${String.fromCharCode(65 + card.answerIndex)}. ${card.options[card.answerIndex]}`;
+  answer.textContent = card.answerText
+    ? `Answer: ${card.answerText}`
+    : `Correct answer: ${String.fromCharCode(65 + card.answerIndex)}. ${card.options[card.answerIndex]}`;
 
   const explanation = document.createElement("div");
   explanation.textContent = card.explanation || "This question has been added to your review queue.";
@@ -1286,6 +1347,10 @@ function showAnswerFeedback(card, selectedIndex, correct) {
     els.answerFeedback.append(source);
   }
   els.answerFeedback.hidden = false;
+  if (options.revealOnly) {
+    els.nextQuestion.disabled = true;
+    els.skipQuestion.disabled = true;
+  }
 }
 
 function updateProgress(cardId, correct, selectedIndex, mode) {
@@ -1638,7 +1703,7 @@ function answerToIndex(answer, options) {
 function resetDemoDeck() {
   if (!confirm("Resetting the demo deck will clear your current study history. Continue?")) return;
   state = prepareState({
-    cards: structuredClone(seedCards),
+    cards: structuredClone(getBuiltInCards()),
     progress: {},
     sessions: [],
     settings: {
