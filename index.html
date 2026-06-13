@@ -8,7 +8,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./assets/icon.svg" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=558" />
   </head>
   <body>
     <header class="topbar">
@@ -269,14 +269,14 @@
       </div>
     </template>
 
-    <script src="./official-bank.js" defer></script>
-    <script src="./roadcode-expanded-bank.js" defer></script>
-    <script src="./roadcode-drill-variants.js" defer></script>
-    <script src="./app.js" defer></script>
+    <script src="./official-bank.js?v=558" defer></script>
+    <script src="./roadcode-expanded-bank.js?v=558" defer></script>
+    <script src="./roadcode-drill-variants.js?v=558" defer></script>
+    <script src="./app.js?v=558" defer></script>
     <script>
       if ("serviceWorker" in navigator && location.protocol !== "file:") {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./sw.js").catch(() => {});
+          navigator.serviceWorker.register("./sw.js?v=558").catch(() => {});
         });
       }
     </script>

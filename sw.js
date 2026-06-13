@@ -1,12 +1,12 @@
-const CACHE_NAME = "nz-theory-coach-v3";
+const CACHE_NAME = "nz-theory-coach-v4";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./official-bank.js",
-  "./roadcode-expanded-bank.js",
-  "./roadcode-drill-variants.js",
+  "./styles.css?v=558",
+  "./app.js?v=558",
+  "./official-bank.js?v=558",
+  "./roadcode-expanded-bank.js?v=558",
+  "./roadcode-drill-variants.js?v=558",
   "./manifest.webmanifest",
   "./assets/icon.svg",
   "./sample-import.csv",
@@ -30,6 +30,25 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+  const networkFirst =
+    event.request.mode === "navigate" ||
+    [".html", ".js", ".css"].some((suffix) => url.pathname.endsWith(suffix));
+
+  if (networkFirst) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request)),
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
